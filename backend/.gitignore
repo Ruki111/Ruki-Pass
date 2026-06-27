@@ -1,0 +1,11 @@
+# Python / uv
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Large wordlists — downloaded via scripts/fetch_wordlists.sh, not committed.
+# The small starter list (common.txt) IS committed as a fallback.
+app/wordlists/*
+!app/wordlists/common.txt
+!app/wordlists/.gitkeep
