@@ -28,6 +28,7 @@ body {
 }
 
 .page {
+  position: relative;
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -35,6 +36,29 @@ body {
   justify-content: center;
   gap: 2rem;
   padding: 2rem 1.25rem;
+}
+
+.gh-top {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.gh-top:hover {
+  color: var(--text);
+  border-color: var(--accent);
 }
 
 .card {
@@ -107,7 +131,56 @@ h1 {
   margin: 0;
 }
 
+.opensource {
+  margin-top: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.opensource-text {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+}
+
+.gh-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.7rem 1.3rem;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.gh-button:hover {
+  background: rgba(110, 168, 254, 0.28);
+}
+
+.gh-button:active {
+  transform: translateY(1px);
+}
+
+a {
+  color: var(--accent);
+}
+
 .footer {
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.footer a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+.footer a:hover {
+  color: var(--text);
 }
