@@ -356,6 +356,51 @@ a {
   color: var(--accent-2);
 }
 
+.brute-options {
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: rgba(110, 168, 254, 0.05);
+  padding: 0.9rem 1rem;
+}
+
+.brute-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.brute-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.brute-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 140px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.brute-field input,
+.brute-field select {
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.55rem 0.7rem;
+  outline: none;
+}
+
+.brute-field input:focus,
+.brute-field select:focus {
+  border-color: var(--accent);
+}
+
 .cracker-button {
   margin-top: 0.4rem;
   align-self: flex-start;

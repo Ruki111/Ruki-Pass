@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from . import cracker, hashing
@@ -44,6 +46,30 @@ class CrackRequest(BaseModel):
         default_factory=list,
         description="Extra seed words (e.g. a name) to mutate, like 'mors' -> 'Mors123'.",
     )
+    brute_force: bool = Field(
+        False,
+        description="Brute-force numeric suffixes on the seed words (e.g. 'anup' -> 'anup77353').",
+    )
+    brute_max_digits: int = Field(
+        5,
+        ge=1,
+        le=8,
+        description="Max trailing digits to try when length is unknown.",
+    )
+    length: int | None = Field(
+        None,
+        ge=1,
+        le=64,
+        description="Known total password length — prunes the brute-force search.",
+    )
+    special: Literal["unknown", "yes", "no"] = Field(
+        "unknown",
+        description="Whether the password contains a special character.",
+    )
+    brute_around: bool = Field(
+        False,
+        description="Also place digits before/around the word ('45akash5465'), not just at the end.",
+    )
 
 
 class CrackResponse(BaseModel):
@@ -77,6 +103,11 @@ def crack(req: CrackRequest) -> CrackResponse:
             algorithm=req.algorithm,
             use_rules=req.use_rules,
             extra_words=req.extra_words,
+            brute_force=req.brute_force,
+            brute_max_digits=req.brute_max_digits,
+            length=req.length,
+            special=req.special,
+            brute_around=req.brute_around,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

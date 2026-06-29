@@ -77,6 +77,59 @@ def test_crack_custom_word_with_rules():
     assert result.password == "Mors123"
 
 
+def test_brute_force_with_length_and_special():
+    # "anup77353" = word + 5 random digits, no special; rules can't build it,
+    # but smart brute force with length=9, special="no" finds it.
+    target = hashlib.md5(b"anup77353").hexdigest()
+    result = cracker.crack(
+        target,
+        algorithm="md5",
+        use_rules=False,
+        extra_words=["anup"],
+        brute_force=True,
+        length=9,
+        special="no",
+    )
+    assert result.found
+    assert result.password == "anup77353"
+
+
+def test_brute_force_around_word():
+    # "45akash5465" = digits + word + digits; only the `around` option builds it.
+    target = hashlib.md5(b"45akash5465").hexdigest()
+    result = cracker.crack(
+        target,
+        algorithm="md5",
+        use_rules=False,
+        extra_words=["akash"],
+        brute_force=True,
+        length=11,
+        special="no",
+        brute_around=True,
+    )
+    assert result.found
+    assert result.password == "45akash5465"
+
+
+def test_around_finds_what_suffix_cannot():
+    from app import mutations
+
+    args = dict(length=11, special="no")
+    suffix_only = set(mutations.brute_append(["akash"], around=False, **args))
+    assert "45akash5465" not in suffix_only  # digits-before is impossible here
+    around = mutations.brute_append(["akash"], around=True, **args)
+    assert any(c == "45akash5465" for c in around)
+
+
+def test_brute_append_respects_length():
+    from app import mutations
+
+    cands = list(mutations.brute_append(["anup"], length=9, special="no"))
+    # Every candidate must be exactly 9 chars (4-char base + 5 digits).
+    assert all(len(c) == 9 for c in cands)
+    assert "anup77353" in cands
+
+
 def test_rules_off_skips_mutations():
     target = hashlib.md5(b"Mors123").hexdigest()
     # With rules off and the seed only tried verbatim, "Mors123" won't be built.

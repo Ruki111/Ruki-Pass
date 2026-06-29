@@ -79,30 +79,47 @@ def build_candidates(
     use_rules: bool,
     extra_words: list[str] | None,
     rule_seed_limit: int,
+    brute_force: bool = False,
+    brute_max_digits: int = 5,
+    length: int | None = None,
+    special: str = "unknown",
+    brute_around: bool = False,
 ) -> Iterator[str]:
     """Build the stream of password candidates to try, cheapest first.
 
-    Order matters: targeted, rule-mutated guesses (user seed words, then the
-    small common list, then the top of the main list) run before the long plain
-    scan of the full wordlist — so a hit on a mutated custom word is instant.
+    Order matters: targeted guesses (rule-mutated seed words, then the smart
+    brute force on those seeds) run before the long plain scan of the full
+    wordlist — so a hit on a custom password is fast.
     """
     extra_words = extra_words or []
 
     if use_rules:
         # 1. User-provided seed words, mutated (e.g. "mors" -> "Mors123").
         yield from mutations.mutate_all(extra_words)
-        # 2. The small common list, mutated.
+
+    # 2. Smart brute force on the seed words (e.g. "anup" -> "anup77353").
+    if brute_force and extra_words:
+        yield from mutations.brute_append(
+            extra_words,
+            max_digits=brute_max_digits,
+            length=length,
+            special=special,
+            around=brute_around,
+        )
+
+    if use_rules:
+        # 3. The small common list, mutated.
         yield from mutations.mutate_all(iter_wordlist(COMMON_WORDLIST))
-        # 3. The most common entries of the main list, mutated.
+        # 4. The most common entries of the main list, mutated.
         if rule_seed_limit > 0:
             yield from mutations.mutate_all(
                 islice(iter_wordlist(), rule_seed_limit)
             )
-    else:
-        # No rules: still try the raw seed words verbatim.
+    elif not brute_force:
+        # No rules and no brute force: still try the raw seed words verbatim.
         yield from extra_words
 
-    # 4. The full wordlist, plain (the big scan).
+    # 5. The full wordlist, plain (the big scan).
     yield from iter_wordlist()
 
 
@@ -113,14 +130,19 @@ def crack(
     use_rules: bool = True,
     extra_words: list[str] | None = None,
     rule_seed_limit: int = DEFAULT_RULE_SEED_LIMIT,
+    brute_force: bool = False,
+    brute_max_digits: int = 5,
+    length: int | None = None,
+    special: str = "unknown",
+    brute_around: bool = False,
 ) -> CrackResult:
     """Try to recover the plaintext behind ``hash_hex``.
 
     If ``algorithm`` is None, it's guessed from the hash length (e.g. a 32-char
     hash is tried as MD5). When ``use_rules`` is on, base words are expanded
-    with common mutations (capitalization, trailing numbers/years, leet), and
-    any ``extra_words`` you pass (e.g. a name) are mutated too. Returns a
-    CrackResult describing the outcome.
+    with common mutations (capitalization, trailing numbers/years, leet). When
+    ``brute_force`` is on, each ``extra_words`` seed gets numeric suffixes
+    brute-forced, pruned by ``length`` and ``special``. Returns a CrackResult.
     """
     target = normalize_hash(hash_hex)
 
@@ -140,9 +162,19 @@ def crack(
         candidates: Iterable[str] = wordlist
         wordlist_name = "custom"
     else:
-        candidates = build_candidates(use_rules, extra_words, rule_seed_limit)
+        candidates = build_candidates(
+            use_rules,
+            extra_words,
+            rule_seed_limit,
+            brute_force=brute_force,
+            brute_max_digits=brute_max_digits,
+            length=length,
+            special=special,
+            brute_around=brute_around,
+        )
         base_name = default_wordlist().name
-        wordlist_name = f"{base_name} + rules" if use_rules else base_name
+        modes = [m for m, on in (("rules", use_rules), ("brute", brute_force)) if on]
+        wordlist_name = f"{base_name} + {' + '.join(modes)}" if modes else base_name
 
     attempts = 0
     start = time.perf_counter()

@@ -12,17 +12,33 @@ export type CrackResponse = {
   wordlist: string | null
 }
 
+export type Special = 'unknown' | 'yes' | 'no'
+
 export type CrackOptions = {
   algorithm?: string
   useRules?: boolean
   extraWords?: string[]
+  bruteForce?: boolean
+  bruteMaxDigits?: number
+  length?: number | null
+  special?: Special
+  bruteAround?: boolean
 }
 
 export async function crackHash(
   hash: string,
   options: CrackOptions = {},
 ): Promise<CrackResponse> {
-  const { algorithm, useRules = true, extraWords = [] } = options
+  const {
+    algorithm,
+    useRules = true,
+    extraWords = [],
+    bruteForce = false,
+    bruteMaxDigits = 5,
+    length = null,
+    special = 'unknown',
+    bruteAround = false,
+  } = options
   const res = await fetch(`${API_BASE}/api/crack`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -31,6 +47,11 @@ export async function crackHash(
       algorithm,
       use_rules: useRules,
       extra_words: extraWords,
+      brute_force: bruteForce,
+      brute_max_digits: bruteMaxDigits,
+      length: length ?? null,
+      special,
+      brute_around: bruteAround,
     }),
   })
 
